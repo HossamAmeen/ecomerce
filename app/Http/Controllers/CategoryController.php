@@ -4,45 +4,38 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
-
-class CategoryController extends BackEndController
+class CategoryController extends Controller
 {
-    public function __construct(Category $model)
+    public function index()
     {
-        parent::__construct($model);
+        $items = Category::all();
+        // return $items;
+        return view('categories' , compact('items'));
     }
- 
-    public function store(Request $request){
-       
-        $requestArray = $request->all();
-        if($request->hasFile('image'))
-        { 
-            $fileName = $this->uploadImage($request , 530 , 432 );
-          if(isset($requestArray['image']) )
-          $requestArray['image'] =  $fileName;
-        }
-        
-        $this->model->create($requestArray);
-        session()->flash('action', 'تم الاضافه بنجاح');
-        return redirect()->route($this->getClassNameFromModel().'.index');
+    public function create()
+    {
+        return view('category-create');
     }
-
-    public function update($id , Request $request){
-        $requestArray = $request->all();
-        if($request->hasFile('image'))
-        {
-            $fileName = $this->uploadImage( $request ,530 , 432 );
-          if(isset($requestArray['image']) )
-          $requestArray['image'] =  $fileName;
-        }
-       
-        $row = $this->model->FindOrFail($id);
-       
-       
-        
-      
-        $row->update($requestArray);
-        session()->flash('action', 'تم التحديث بنجاح');
-        return redirect()->route($this->getClassNameFromModel().'.index');
+    public function store(Request $request)
+    {
+        Category::create($request->all());
+        return redirect(route('categories.index'));
+    }
+    public function edit($id)
+    {
+        $item = Category::findOrFail($id);
+        return view('category-edite' , compact('item'));
+    }
+    public function update($id , Request $request)
+    {
+        Category::find($id)->update($request->all());
+        return redirect(route('categories.index'));
+    }
+    public function delete($id)
+    {
+        $category = Category::findOrFail($id) ;
+         $category->products()->delete();
+         $category->delete();
+         return redirect(route('categories.index'));
     }
 }

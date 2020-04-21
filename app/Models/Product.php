@@ -10,6 +10,6 @@ class Product extends Model
         'name' , 'image', 'price' , 'image', 'category_id' , 'quantity'
     ];
     public function category(){
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class , 'category_id');
     }
 }

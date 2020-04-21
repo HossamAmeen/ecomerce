@@ -4,50 +4,46 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
-
-class ProductController extends BackEndController
+use App\Models\Category;
+class ProductController extends Controller
 {
-    public function __construct(Product $model)
+    public function index()
     {
-        parent::__construct($model);
+        $items = Product::all();
+        // return $items;
+        return view('products' , compact('items'));
     }
- 
-    public function store(Request $request){
-       
-        $requestArray = $request->all();
-        if($request->hasFile('image'))
-        { 
-            $fileName = $this->uploadImage($request , 530 , 432 );
-          if(isset($requestArray['image']) )
-          $requestArray['image'] =  $fileName;
-        }
-        
-        $this->model->create($requestArray);
-        session()->flash('action', 'تم الاضافه بنجاح');
-        return redirect()->route($this->getClassNameFromModel().'.index');
+    public function create()
+    {
+        $items = Category::all();
+        return view('Product-create' , compact('items'));
     }
+    public function store(Request $request)
+    {
+        $requestArray  = $request->all() ;
+        $photo = $request->file('image');
+        $fileName = time().str_random('10').'.'.$photo->getClientOriginalExtension();
+        $destinationPath = public_path('uploads/');
+        $photo->move($destinationPath,$fileName );
+        $requestArray['image'] = 'uploads/'. $fileName ;
 
-    public function update($id , Request $request){
-        $requestArray = $request->all();
-        if($request->hasFile('image'))
-        {
-            $fileName = $this->uploadImage( $request ,530 , 432 );
-          if(isset($requestArray['image']) )
-          $requestArray['image'] =  $fileName;
-        }
-       
-        $row = $this->model->FindOrFail($id);
-       
-       
-        
-        
-        $row->update($requestArray);
-        session()->flash('action', 'تم التحديث بنجاح');
-        return redirect()->route($this->getClassNameFromModel().'.index');
+        Product::create($requestArray);
+        return redirect(route('products.index'));
     }
-    public function append()
+    public function edit($id)
     {
-        $data['categories']= \App\Models\Category::all();
-        return $data;
+        $item = Product::findOrFail($id);
+        $items = Category::all();
+        return view('Product-edit' , compact('item' , 'items'));
+    }
+    public function update($id , Request $request)
+    {
+        Product::find($id)->update($request->all());
+        return redirect(route('products.index'));
+    }
+    public function delete($id)
+    {
+        $Product = Product::findOrFail($id) ;
+         return redirect(route('products.index'));
     }
 }
